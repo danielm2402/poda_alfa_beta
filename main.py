@@ -41,6 +41,7 @@ def alpha_beta_search(state, game):
             best_action = a
     return best_action
 
+
 go=Go()
 state=GameState([
 2,2,2,2,2,2,2,2,2, #d
@@ -53,9 +54,10 @@ state=GameState([
 2,1,1,1,1,1,1,1,2,
 2,2,2,2,2,2,2,2,2
 ])
-
+"""
+"""
 #go.utility(state)
-print(go.actions(state, 2))
+#print(go.actions(state, 2))
 
 #comp=alpha_beta_search(state,go)
 #print(comp)
@@ -113,3 +115,17 @@ print(all(result))
 
 """
 
+go=Go()
+state=GameState([
+2,2,2,2,2,2,2,2,2, #d
+2,0,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,2, #D
+2,1,1,1,1,1,1,1,2,
+2,2,2,2,2,2,2,2,2
+])
+
+print(go.actions(state,2))

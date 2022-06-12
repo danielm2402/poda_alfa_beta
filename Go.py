@@ -14,10 +14,10 @@ class Go():
             if self.checkLibertades(i, board, player):
                 actions.append(i)
             else:
-                result=[]
-                self.checkEncerrados([i],board,i,result, player)
-                if(all(result)):
+                if self.checkEncerrados(board,i, player):
                     actions.append(i)
+        print(actions)
+
 
 
         return actions
@@ -72,6 +72,7 @@ class Go():
             return False
 
     def checkLibertades(self, index, board, player):
+        print(index, player)
         if board[index] == 0:
             if self.checkLibertadDerecha(index, board, player) or self.checkLibertadIzquierda(index, board, player) or self.checkLibertadArriba(index,
                                                                                                                  board, player) or self.checkLibertadAbajo(
@@ -151,60 +152,25 @@ class Go():
         try:
             return {"value": board[index - 1], "index": index - 1}
         except IndexError:
-            return {"value": None, "index": index - 1}
+            return {"value": None, "index": None}
 
     def getRight(self,index, board):
         try:
             return {"value": board[index + 1], "index": index + 1}
         except IndexError:
-            return {"value": None, "index": index + 1}
+            return {"value": None, "index": None}
 
     def getUp(self,index, board):
         try:
             return {"value": board[index - 9], "index": index - 9}
         except IndexError:
-            return {"value": None, "index": index - 9}
+            return {"value": None, "index": None}
 
     def getDown(self,index, board):
         try:
             return {"value": board[index + 9], "index": index + 9}
         except IndexError:
-            return {"value": None, "index": index + 9}
-
-    def checkEncerrados(self,list, board, index, result, player):
-        enemy = 1 if player ==2 else 2
-        rigth = self.getLeft(index, board)
-        left = self.getRight(index, board)
-        up = self.getUp(index, board)
-        down = self.getDown(index, board)
-
-        if rigth.get('value') == enemy and not rigth.get('index') in list:
-            list.append(rigth.get('index'))
-            self.checkEncerrados(list, board, rigth.get('index'), result, player)
-        elif left.get('value') == enemy and not left.get('index') in list:
-            list.append(left.get('index'))
-            self.checkEncerrados(list, board, left.get('index'), result, player)
-        elif up.get('value') == enemy and not up.get('index') in list:
-            list.append(up.get('index'))
-            self.checkEncerrados(list, board, up.get('index'), result, player)
-        elif down.get('value') == enemy and not down.get('index') in list:
-            list.append(down.get('index'))
-            self.checkEncerrados(list, board, down.get('index'), result, player)
-        else:
-            newboard = copy.deepcopy(board)
-            newboard[list[index]] = player
-            for i in list:
-                print(self.checkLibertadDerecha(i, newboard, player))
-                print(self.checkLibertadIzquierda(i, newboard, player))
-                print(self.checkLibertadArriba(i,newboard, player))
-                print(self.checkLibertadAbajo(i, newboard, player))
-                if self.checkLibertadDerecha(i, newboard, player) or self.checkLibertadIzquierda(i, newboard, player) or self.checkLibertadArriba(i,
-                                                                                                                   newboard, player) or self.checkLibertadAbajo(
-                        i, newboard, player):
-                    result.append(False)
-                else:
-                    result.append(True)
-            print(result)
+            return {"value": None, "index": None}
 
     def casillacontrolada(self, board):
         count = 0
@@ -220,3 +186,50 @@ class Go():
                 if total>totalEnemy:
                     count = count + 1
         return count
+
+    def checkEncerrados(self, board, index, player):
+        newboard = copy.deepcopy(board)
+        newboard[index] = player
+        close = []
+        result = []
+        enemy = 1 if player == 2 else 2
+        l = self.getLeft(index, board).get('index')
+        r = self.getRight(index, board).get('index')
+        d = self.getDown(index, board).get('index')
+        u = self.getUp(index, board).get('index')
+        open=[l,r,d,u]
+        while len(open) != 0:
+            element = open.pop(0)
+            close.append(element)
+            list=[]
+            l = self.getLeft(element, board).get('index')
+            r = self.getRight(element, board).get('index')
+            d = self.getDown(element, board).get('index')
+            u = self.getUp(element, board).get('index')
+
+            if l is not None and board[l] == enemy:
+                list.append(l)
+            if r is not None and board[r] == enemy:
+                list.append(r)
+            if d is not None and board[d] == enemy:
+                list.append(d)
+            if u is not None and board[u] == enemy:
+                list.append(u)
+
+            newlist = copy.copy(list)
+            for i, a in enumerate(list):
+                if a in open:
+                    newlist.remove(a)
+                if a in close:
+                    newlist.remove(a)
+
+            open.extend(newlist)
+        for element in close:
+            if self.checkLibertadDerecha(element, newboard, player) or self.checkLibertadIzquierda(element, newboard,
+                                                                                                   player) or self.checkLibertadArriba(
+                    element, newboard, player) or self.checkLibertadAbajo(element, newboard, player):
+                result.append(True)
+            else:
+                result.append(False)
+        print(result)
+        return not any(result)
