@@ -16,7 +16,6 @@ class Go():
             else:
                 if self.checkEncerrados(board,i, player):
                     actions.append(i)
-        print(actions)
 
 
 
@@ -33,36 +32,20 @@ class Go():
     def utility(self, state):
         board = state.board
         points=0
-        capturadaspc = 0
-        fichasenpeligro= 0
-        #capturadas por computadora
-        for i, element in enumerate(board):
-            if element == 1 and not self.checkLibertades(i,board,2):
-                capturadaspc=capturadaspc+1
-        points= points + (capturadaspc*7)
 
-        newboard = copy.deepcopy(board)
-        for i, element in enumerate(newboard):
-            if self.checkLibertades(i, board, 1):
-               newboard[i] = 1
-            else:
-                result = []
-                self.checkEncerrados([i], board, i, result, 1)
-                if (all(result)):
-                    newboard[i] = 1
         # atari
-        for i, element in enumerate(newboard):
-            if element == 2 and not self.checkLibertades(i,board,1):
-                fichasenpeligro = fichasenpeligro + 1
+        enpeligro = self.countAtari(board,2)
+        enposible = self.countAtari(board,1)
 
-        points = points - fichasenpeligro
+        points = points - enpeligro
+        points = points + enposible
 
+        # territorio
         territorio = self.casillacontrolada(board) * 3
 
         points = points + territorio
 
         return points
-
 
 
     def terminal_test(self, state):
@@ -72,7 +55,6 @@ class Go():
             return False
 
     def checkLibertades(self, index, board, player):
-        print(index, player)
         if board[index] == 0:
             if self.checkLibertadDerecha(index, board, player) or self.checkLibertadIzquierda(index, board, player) or self.checkLibertadArriba(index,
                                                                                                                  board, player) or self.checkLibertadAbajo(
@@ -200,30 +182,31 @@ class Go():
         open=[l,r,d,u]
         while len(open) != 0:
             element = open.pop(0)
-            close.append(element)
-            list=[]
-            l = self.getLeft(element, board).get('index')
-            r = self.getRight(element, board).get('index')
-            d = self.getDown(element, board).get('index')
-            u = self.getUp(element, board).get('index')
+            if element is not None:
+                close.append(element)
+                list=[]
+                l = self.getLeft(element, board).get('index')
+                r = self.getRight(element, board).get('index')
+                d = self.getDown(element, board).get('index')
+                u = self.getUp(element, board).get('index')
 
-            if l is not None and board[l] == enemy:
-                list.append(l)
-            if r is not None and board[r] == enemy:
-                list.append(r)
-            if d is not None and board[d] == enemy:
-                list.append(d)
-            if u is not None and board[u] == enemy:
-                list.append(u)
+                if l is not None and board[l] == enemy:
+                    list.append(l)
+                if r is not None and board[r] == enemy:
+                    list.append(r)
+                if d is not None and board[d] == enemy:
+                    list.append(d)
+                if u is not None and board[u] == enemy:
+                    list.append(u)
 
-            newlist = copy.copy(list)
-            for i, a in enumerate(list):
-                if a in open:
-                    newlist.remove(a)
-                if a in close:
-                    newlist.remove(a)
+                newlist = copy.copy(list)
+                for i, a in enumerate(list):
+                    if a in open:
+                        newlist.remove(a)
+                    if a in close:
+                        newlist.remove(a)
+                open.extend(newlist)
 
-            open.extend(newlist)
         for element in close:
             if self.checkLibertadDerecha(element, newboard, player) or self.checkLibertadIzquierda(element, newboard,
                                                                                                    player) or self.checkLibertadArriba(
@@ -231,5 +214,20 @@ class Go():
                 result.append(True)
             else:
                 result.append(False)
-        print(result)
+
         return not any(result)
+
+    def countAtari(self, board, player):
+        enemy = 1 if player == 2 else 2
+        newboard = copy.deepcopy(board)
+        for index,casilla in enumerate(board):
+            if casilla == 0 and self.checkLibertades(index,board,2):
+                newboard[index] = enemy
+        #contar
+        list=[]
+        for index,casilla in enumerate(newboard):
+            if casilla == player:
+                if not self.checkLibertades(index,newboard,player):
+                    list.append(index)
+
+        return len(list)
